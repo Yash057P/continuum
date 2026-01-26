@@ -1,0 +1,50 @@
+pipeline {
+    agent any
+
+    environment {
+        NODE_VERSION = '24.13.0' // match your Node version
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/Tanay-277/continuum'
+            }
+        }
+
+        stage('Setup Node') {
+            steps {
+                // If NodeJS plugin is installed
+                nodejs(NODE_VERSION) {
+                    sh 'node -v'
+                    sh 'npm -v'
+                }
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'bun install' // or `bun install` if using Bun
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'bun run build' // or `bun build`
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                // Example: copy build to server
+                sh 'rsync -av build/ user@server:/var/www/myapp'
+            }
+        }   
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: 'build/**', allowEmptyArchive: true
+        }
+    }
+}
